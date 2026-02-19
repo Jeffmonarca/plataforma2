@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma de Investimento Angola</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-7xl mx-auto p-4 md:p-6 min-h-screen">
+        <!-- Header -->
+        <header class="mb-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+            <h1 class="text-3xl font-bold mb-2">🏦 Plataforma de Investimento Angola</h1>
+            <p class="text-sm opacity-90">Sistema completo com depósito e levantamento bancário</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mt-4">
+                <div class="bg-white bg-opacity-20 p-3 rounded">
+                    <div class="text-xs opacity-90">Saldo Disponível</div>
+                    <div class="text-xl font-bold" id="saldoDisplay">0,00 Kz</div>
+                </div>
+                <div class="bg-white bg-opacity-20 p-3 rounded">
+                    <div class="text-xs opacity-90">Total Investido</div>
+                    <div class="text-xl font-bold" id="totalInvestido">0,00 Kz</div>
+                </div>
+                <div class="bg-white bg-opacity-20 p-3 rounded">
+                    <div class="text-xs opacity-90">Investimentos Ativos</div>
+                    <div class="text-xl font-bold" id="numInvestimentos">0/15</div>
+                </div>
+                <div class="bg-white bg-opacity-20 p-3 rounded">
+                    <div class="text-xs opacity-90">Retorno Projetado</div>
+                    <div class="text-xl font-bold" id="totalProjetado">0,00 Kz</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Alerts -->
+        <div id="alertContainer"></div>
+
+        <!-- Tabs -->
+        <div class="bg-white rounded-lg shadow-md mb-6">
+            <div class="flex border-b">
+                <button onclick="changeTab('deposito')" class="tab-btn flex-1 px-6 py-3 font-medium text-gray-600" data-tab="deposito">
+                    💰 Depósito
+                </button>
+                <button onclick="changeTab('levantamento')" class="tab-btn flex-1 px-6 py-3 font-medium text-gray-600" data-tab="levantamento">
+                    🏧 Levantamento
+                </button>
+                <button onclick="changeTab('investir')" class="tab-btn flex-1 px-6 py-3 font-medium text-gray-600" data-tab="investir">
+                    💎 Investir
+                </button>
+                <button onclick="changeTab('historico')" class="tab-btn flex-1 px-6 py-3 font-medium text-gray-600" data-tab="historico">
+                    📊 Histórico
+                </button>
+            </div>
+
+            <div class="p-6">
+                <!-- Tab: Depósito -->
+                <div id="tab-deposito" class="tab-content">
+                    <h2 class="text-xl font-bold mb-4">Depositar Fundos</h2>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">Valor (Kz)</label>
+                        <input type="number" id="depositAmount" placeholder="Ex: 5000" class="w-full p-3 border rounded-lg">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">Banco de Origem</label>
+                        <select id="depositBank" class="w-full p-3 border rounded-lg">
+                            <option value="bai">BAI - Banco Angolano de Investimentos</option>
+                            <option value="bpc">BPC - Banco de Poupança e Crédito</option>
+                            <option value="bca">BCA - Banco Comercial Angolano</option>
+                            <option value="bic">BIC - Banco BIC</option>
+                            <option value="bal">BAL - Banco Angolano de Negócios e Comércio</option>
+                            <option value="standard">Standard Bank Angola</option>
+                            <option value="atlantico">Banco Atlântico</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">Referência da Transferência</label>
+                        <input type="text" id="depositRef" placeholder="Ex: TRF123456789" class="w-full p-3 border rounded-lg">
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-lg mb-4 text-sm">
+                        <p class="font-semibold mb-2">📋 Dados para Transferência:</p>
+                        <p><strong>Banco:</strong> BAI - Banco Angolano de Investimentos</p>
+                        <p><strong>IBAN:</strong> AO06 0055 0000 9876 5432 1098 7</p>
+                        <p><strong>Titular:</strong> InvestAngola Platform LDA</p>
+                        <p class="text-xs text-gray-600 mt-2">Após transferir, insira a referência acima e clique em confirmar.</p>
+                    </div>
+
+                    <button onclick="handleDeposit()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg">
+                        ✅ Confirmar Depósito
+                    </button>
+
+                    <div class="mt-6">
+                        <h3 class="font-semibold mb-3">Depósitos Recentes</h3>
+                        <div id="depositsList"></div>
+                    </div>
+                </div>
+
+                <!-- Tab: Levantamento -->
+                <div id="tab-levantamento" class="tab-content">
+                    <h2 class="text-xl font-bold mb-4">Levantar Fundos</h2>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">Valor (Kz)</label>
+                        <input type="number" id="withdrawAmount" placeholder="Máximo disponível" class="w-full p-3 border rounded-lg">
+                        <p class="text-xs text-gray-500 mt-1">Saldo disponível: <span id="saldoWithdraw">0,00 Kz</span></p>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">Banco de Destino</label>
+                        <select id="withdrawBank" class="w-full p-3 border rounded-lg">
+                            <option value="bai">BAI - Banco Angolano de Investimentos</option>
+                            <option value="bpc">BPC - Banco de Poupança e Crédito</option>
+                            <option value="bca">BCA - Banco Comercial Angolano</option>
+                            <option value="bic">BIC - Banco BIC</option>
+                            <option value="bal">BAL - Banco Angolano de Negócios e Comércio</option>
+                            <option value="standard">Standard Bank Angola</option>
+                            <option value="atlantico">Banco Atlântico</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">IBAN da Conta</label>
+                        <input type="text" id="withdrawIban" placeholder="Ex: AO06 0055 0000 1234 5678 9012 3" class="w-full p-3 border rounded-lg">
+                    </div>
+
+                    <div class="bg-yellow-50 p-4 rounded-lg mb-4 text-sm">
+                        <p class="font-semibold mb-1">⚠️ Informações Importantes:</p>
+                        <ul class="text-xs space-y-1 ml-4 list-disc">
+                            <li>Taxa de processamento: 2% do valor</li>
+                            <li>Prazo: até 48 horas úteis</li>
+                            <li>Levantamento mínimo: 5.000,00 Kz</li>
+                        </ul>
+                    </div>
+
+                    <button onclick="handleWithdraw()" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg">
+                        🏧 Solicitar Levantamento
+                    </button>
+
+                    <div class="mt-6">
+                        <h3 class="font-semibold mb-3">Levantamentos Recentes</h3>
+                        <div id="withdrawalsList"></div>
+                    </div>
+                </div>
+
+                <!-- Tab: Investir -->
+                <div id="tab-investir" class="tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h2 class="text-xl font-bold mb-4">Criar Investimento</h2>
+                            
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium mb-2">Valor (Kz)</label>
+                                <input type="number" id="investAmount" placeholder="Ex: 3000000" class="w-full p-3 border rounded-lg" oninput="updateProjection()">
+                                <p class="text-xs text-gray-500 mt-1">Disponível: <span id="saldoInvest">0,00 Kz</span></p>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium mb-2">Plano</label>
+                                <div id="plansList"></div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium mb-2">Prazo (anos)</label>
+                                <input type="number" id="termYears" min="1" max="30" value="1" class="w-full p-3 border rounded-lg" oninput="updateProjection()">
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                                <div class="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                        <div class="text-gray-600">Retorno Mensal</div>
+                                        <div class="font-semibold" id="monthlyReturn">0,00 Kz</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-600">Total (<span id="projYears">1</span> anos)</div>
+                                        <div class="font-semibold text-green-600" id="totalReturn">0,00 Kz</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button onclick="handleInvest()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg">
+                                💎 Confirmar Investimento
+                            </button>
+                        </div>
+
+                        <div>
+                            <h2 class="text-xl font-bold mb-4">Meus Investimentos (<span id="investCount">0</span>/15)</h2>
+                            <div id="investmentsList" class="space-y-3 max-h-[600px] overflow-y-auto"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Histórico -->
+                <div id="tab-historico" class="tab-content">
+                    <h2 class="text-xl font-bold mb-4">Histórico Completo</h2>
+                    <div id="historicoList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-8 text-xs text-gray-500 bg-white p-4 rounded-lg shadow-sm">
+            <p class="mb-2"><strong>ℹ️ Informações Importantes:</strong></p>
+            <ul class="list-disc ml-5 space-y-1">
+                <li>Todos os dados são armazenados localmente no seu navegador</li>
+                <li>Os cálculos usam juros compostos anuais</li>
+                <li>Esta é uma plataforma demonstrativa funcional</li>
+                <li>Investimento mínimo: 3.000.000,00 Kz (variável por plano)</li>
+            </ul>
+        </footer>
+    </div>
+
+    <script>
+        const PLANS = [
+            { id: "conservador", name: "Conservador", yearlyReturnPct: 6, color: "bg-green-100 border-green-300", minAmount: 3000000 },
+            { id: "moderado", name: "Moderado", yearlyReturnPct: 12, color: "bg-blue-100 border-blue-300", minAmount: 5000000 },
+            { id: "agressivo", name: "Agressivo", yearlyReturnPct: 24, color: "bg-purple-100 border-purple-300", minAmount: 10000000 },
+            { id: "premium", name: "Premium", yearlyReturnPct: 30, color: "bg-yellow-100 border-yellow-300", minAmount: 20000000 },
+            { id: "elite", name: "Elite", yearlyReturnPct: 36, color: "bg-red-100 border-red-300", minAmount: 50000000 },
+        ];
+
+        const BANCOS = {
+            bai: "BAI - Banco Angolano de Investimentos",
+            bpc: "BPC - Banco de Poupança e Crédito",
+            bca: "BCA - Banco Comercial Angolano",
+            bic: "BIC - Banco BIC",
+            bal: "BAL - Banco Angolano de Negócios e Comércio",
+            standard: "Standard Bank Angola",
+            atlantico: "Banco Atlântico"
+        };
+
+        let selectedPlan = "conservador";
+
+        function formatKz(value) {
+            if (!value || isNaN(value)) return "0,00 Kz";
+            return value.toLocaleString("pt-PT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " Kz";
+        }
+
+        function showAlert(message, type = "error") {
+            const alert = document.createElement("div");
+            alert.className = `mb-4 px-4 py-3 rounded ${type === "success" ? "bg-green-50 border border-green-300 text-green-700" : "bg-red-50 border border-red-300 text-red-700"}`;
+            alert.textContent = message;
+            document.getElementById("alertContainer").innerHTML = "";
+            document.getElementById("alertContainer").appendChild(alert);
+            setTimeout(() => alert.remove(), 5000);
+        }
+
+        function getStorage(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function setStorage(key, value) {
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+
+        function calcProjectedReturn(principal, yearlyPct, years) {
+            const rate = yearlyPct / 100;
+            return principal * Math.pow(1 + rate, years);
+        }
+
+        function calcMonthlyReturn(principal, yearlyPct) {
+            return principal * (yearlyPct / 100 / 12);
+        }
+
+        function getSaldo() {
+            const deposits = getStorage("deposits").filter(d => d.status === "aprovado");
+            const withdrawals = getStorage("withdrawals").filter(w => w.status === "aprovado");
+            const investments = getStorage("investments");
+            
+            const totalDeposits = deposits.reduce((sum, d) => sum + d.amount, 0);
+            const totalWithdrawn = withdrawals.reduce((sum, w) => sum + w.amount, 0);
+            const totalInvested = investments.reduce((sum, i) => sum + i.amount, 0);
+            
+            return totalDeposits - totalWithdrawn - totalInvested;
+        }
+
+        function updateDashboard() {
+            const saldo = getSaldo();
+            const investments = getStorage("investments");
+            const totalInvested = investments.reduce((sum, i) => sum + i.amount, 0);
+            const totalProjected = investments.reduce((sum, i) => sum + i.projected, 0);
+
+            document.getElementById("saldoDisplay").textContent = formatKz(saldo);
+            document.getElementById("totalInvestido").textContent = formatKz(totalInvested);
+            document.getElementById("numInvestimentos").textContent = `${investments.length}/15`;
+            document.getElementById("totalProjetado").textContent = formatKz(totalProjected);
+            document.getElementById("saldoWithdraw").textContent = formatKz(saldo);
+            document.getElementById("saldoInvest").textContent = formatKz(saldo);
+        }
+
+        function changeTab(tabName) {
+            document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+            document.querySelectorAll(".tab-btn").forEach(btn => {
+                btn.classList.remove("border-b-2", "border-blue-600", "text-blue-600");
+                btn.classList.add("text-gray-600");
+            });
+            
+            document.getElementById(`tab-${tabName}`).classList.add("active");
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add("border-b-2", "border-blue-600", "text-blue-600");
+            document.querySelector(`[data-tab="${tabName}"]`).classList.remove("text-gray-600");
+
+            if (tabName === "investir") renderInvestments();
+            if (tabName === "deposito") renderDeposits();
+            if (tabName === "levantamento") renderWithdrawals();
+            if (tabName === "historico") renderHistory();
+        }
+
+        function handleDeposit() {
+            const amount = Number(document.getElementById("depositAmount").value);
+            const bank = document.getElementById("depositBank").value;
+            const ref = document.getElementById("depositRef").value.trim();
+
+            if (!amount || amount < 1000) {
+                showAlert("Depósito mínimo: 1.000,00 Kz");
+                return;
+            }
+
+            if (!ref) {
+                showAlert("Insira a referência da transferência");
+                return;
+            }
+
+            const deposit = {
+                id: Date.now(),
+                amount: amount,
+                bankId: bank,
+                bankName: BANCOS[bank],
+                reference: ref,
+                date: new Date().toISOString(),
+                status: "pendente"
+            };
+
+            const deposits = getStorage("deposits");
+            deposits.push(deposit);
+            setStorage("deposits", deposits);
+
+            document.getElementById("depositAmount").value = "";
+            document.getElementById("depositRef").value = "";
+            
+            showAlert(`Depósito de ${formatKz(amount)} enviado! Aguarde aprovação (até 24h).`, "success");
+            renderDeposits();
+            updateDashboard();
+        }
+
+        function approveDeposit(id) {
+            const deposits = getStorage("deposits");
+            const deposit = deposits.find(d => d.id === id);
+            if (deposit) {
+                deposit.status = "aprovado";
+                setStorage("deposits", deposits);
+                showAlert("Depósito aprovado!", "success");
+                renderDeposits();
+                updateDashboard();
+            }
+        }
+
+        function renderDeposits() {
+            const deposits = getStorage("deposits").slice(0, 5);
+            const html = deposits.map(d => `
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded mb-2">
+                    <div>
+                        <div class="font-medium">${formatKz(d.amount)}</div>
+                        <div class="text-xs text-gray-600">${d.bankName} • ${d.reference}</div>
+                        <div class="text-xs text-gray-500">${new Date(d.date).toLocaleString("pt-PT")}</div>
+                    </div>
+                    <div>
+                        <span class="text-xs px-2 py-1 rounded ${d.status === "aprovado" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}">
+                            ${d.status}
+                        </span>
+                        ${d.status === "pendente" ? `<button onclick="approveDeposit(${d.id})" class="ml-2 text-xs text-blue-600 underline">Aprovar</button>` : ""}
+                    </div>
+                </div>
+            `).join("");
+            document.getElementById("depositsList").innerHTML = html || '<div class="text-gray-500 text-sm">Nenhum depósito ainda</div>';
+        }
+
+        function handleWithdraw() {
+            const amount = Number(document.getElementById("withdrawAmount").v
